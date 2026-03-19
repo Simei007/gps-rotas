@@ -1,52 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>GPS Navegação</title>
+<title>GPS Navigator</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
+<link rel="manifest" href="manifest.json">
 
-<style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-body{
-margin:0;
-font-family:Arial;
-}
-
-#map{
-height:100vh;
-}
-
-.menu{
-position:absolute;
-top:10px;
-left:50%;
-transform:translateX(-50%);
-z-index:1000;
-background:#222;
-padding:10px;
-border-radius:10px;
-display:flex;
-gap:10px;
-}
-
-button{
-padding:8px 12px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-color:white;
-}
-
-.gps{background:#27ae60}
-.dest{background:#2980b9}
-.stop{background:#c0392b}
-
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -54,106 +20,21 @@ color:white;
 
 <div id="map"></div>
 
-<div class="menu">
+<div class="controls">
 
-<button class="gps" onclick="startGPS()">Iniciar GPS</button>
-<button class="dest" onclick="setDestino()">Definir destino</button>
-<button class="stop" onclick="stopGPS()">Parar</button>
+<button onclick="startGPS()">GPS</button>
+
+<button onclick="setDestino()">Destino</button>
+
+<button onclick="startRecording()">Gravar</button>
+
+<button onclick="exportGPX()">GPX</button>
 
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
-<script>
-
-let map = L.map('map').setView([-23.5505,-46.6333],13)
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(map)
-
-let marker
-let watchId
-let rota
-let posicaoAtual
-
-let carro = L.icon({
-
-iconUrl:"https://cdn-icons-png.flaticon.com/512/61/61168.png",
-iconSize:[40,40],
-iconAnchor:[20,20]
-
-})
-
-function startGPS(){
-
-watchId = navigator.geolocation.watchPosition(pos=>{
-
-let lat = pos.coords.latitude
-let lon = pos.coords.longitude
-
-posicaoAtual = [lat,lon]
-
-if(!marker){
-
-marker = L.marker(posicaoAtual,{icon:carro}).addTo(map)
-
-}else{
-
-marker.setLatLng(posicaoAtual)
-
-}
-
-map.setView(posicaoAtual,18)
-
-})
-
-}
-
-function stopGPS(){
-
-navigator.geolocation.clearWatch(watchId)
-
-}
-
-function setDestino(){
-
-if(!posicaoAtual){
-
-alert("Ative o GPS primeiro")
-return
-
-}
-
-alert("Clique no mapa para escolher o destino")
-
-map.once("click",e=>{
-
-let destino = [e.latlng.lat,e.latlng.lng]
-
-if(rota){
-
-map.removeControl(rota)
-
-}
-
-rota = L.Routing.control({
-
-waypoints:[
-L.latLng(posicaoAtual[0],posicaoAtual[1]),
-L.latLng(destino[0],destino[1])
-],
-
-routeWhileDragging:false
-
-}).addTo(map)
-
-})
-
-}
-
-</script>
+<script src="app.js"></script>
 
 </body>
 </html>

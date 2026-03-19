@@ -1,7 +1,18 @@
+self.addEventListener("install",e=>{
 
-self.addEventListener('install', e => {
-  self.skipWaiting()
+e.waitUntil(
+
+caches.open("gps-cache").then(cache=>{
+
+return cache.addAll([
+"/",
+"/index.html",
+"/style.css",
+"/app.js"
+])
+
 })
 
-self.addEventListener('fetch', event => {
+)
+
 })
