@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>GPS Rotas Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+body{margin:0;font-family:Arial;background:#111;color:white}
+#map{height:85vh;width:100%}
+.controls{
+height:15vh;
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+justify-content:center;
+align-items:center;
+background:#222;
+padding:10px
+}
+button{
+padding:10px 16px;
+font-size:14px;
+border:none;
+border-radius:6px;
+cursor:pointer
+}
+.start{background:#2ecc71;color:white}
+.stop{background:#e74c3c;color:white}
+.clear{background:#3498db;color:white}
+.save{background:#f1c40f;color:black}
+.load{background:#9b59b6;color:white}
+.export{background:#1abc9c;color:white}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div class="controls">
+<button class="start" onclick="startTracking()">Iniciar</button>
+<button class="stop" onclick="stopTracking()">Parar</button>
+<button class="clear" onclick="clearRoute()">Limpar</button>
+<button class="save" onclick="saveRoute()">Salvar</button>
+<button class="load" onclick="loadRoute()">Carregar</button>
+<button class="export" onclick="exportGPX()">Exportar GPX</button>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+if ('serviceWorker' in navigator) {
+ navigator.serviceWorker.register('sw.js')
+}
+
+let map=L.map('map').setView([-23.5505,-46.6333],13)
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map)
+
+let marker=null
+let route=[]
+let polyline=L.polyline(route,{color:'red'}).addTo(map)
+let watchId=null
+
+function startTracking(){
+if(!navigator.geolocation){alert("GPS não suportado");return}
+
+watchId=navigator.geolocation.watchPosition(pos=>{
+
+let lat=pos.coords.latitude
+let lon=pos.coords.longitude
+let latlng=[lat,lon]
+
+route.push(latlng)
+polyline.setLatLngs(route)
+
+if(!marker){
+marker=L.marker(latlng).addTo(map)
+}else{
+marker.setLatLng(latlng)
+}
+
+map.setView(latlng,18)
+
+},err=>{
+alert("Erro GPS: "+err.message)
+},{
+enableHighAccuracy:true,
+maximumAge:0,
+timeout:5000
+})
+}
+
+function stopTracking(){
+if(watchId){
+navigator.geolocation.clearWatch(watchId)
+watchId=null
+}
+}
+
+function clearRoute(){
+route=[]
+polyline.setLatLngs(route)
+localStorage.removeItem("gps_route")
+}
+
+function saveRoute(){
+localStorage.setItem("gps_route",JSON.stringify(route))
+alert("Rota salva")
+}
+
+function loadRoute(){
+let data=localStorage.getItem("gps_route")
+if(!data){alert("Nenhuma rota salva");return}
+route=JSON.parse(data)
+polyline.setLatLngs(route)
+map.fitBounds(polyline.getBounds())
+}
+
+function exportGPX(){
+if(route.length==0){alert("Nenhuma rota");return}
+
+let gpx=`<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="GPS Rotas PRO"><trk><name>Rota</name><trkseg>`
+
+route.forEach(p=>{
+gpx+=`<trkpt lat="${p[0]}" lon="${p[1]}"></trkpt>`
+})
+
+gpx+=`</trkseg></trk></gpx>`
+
+let blob=new Blob([gpx],{type:"application/gpx+xml"})
+let url=URL.createObjectURL(blob)
+
+let a=document.createElement("a")
+a.href=url
+a.download="rota.gpx"
+a.click()
+
+URL.revokeObjectURL(url)
+}
+
+</script>
+
+</body>
+</html>
