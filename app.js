@@ -144,3 +144,6 @@ msg.lang="pt-BR"
 speechSynthesis.speak(msg)
 
 }
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+}

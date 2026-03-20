@@ -1,10 +1,10 @@
 {
-"name":"GPS Navigator",
-"short_name":"Navigator",
-"start_url":"index.html",
+"name":"GPS Rotas",
+"short_name":"GPS Rotas",
 "display":"standalone",
-"background_color":"#111111",
-"theme_color":"#111111",
+"start_url":"./",
+"background_color":"#000000",
+"theme_color":"#1976d2",
 "icons":[
 {
 "src":"icons/icon-192.png",
