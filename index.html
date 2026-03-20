@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-
+<html lang="pt-BR">
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>GPS Navigator</title>
+<title>GPS Rotas V9</title>
 
 <link rel="manifest" href="manifest.json">
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
 <link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
 
 </head>
 
@@ -20,19 +23,25 @@
 
 <div id="map"></div>
 
-<div class="controls">
+<div id="ui">
 
-<button onclick="startGPS()">GPS</button>
+<input id="search" placeholder="Buscar endereço">
 
-<button onclick="setDestino()">Destino</button>
+<button onclick="searchPlace()">🔎 Buscar</button>
 
-<button onclick="startRecording()">Gravar</button>
+<button onclick="startGPS()">🚗 Iniciar GPS</button>
 
-<button onclick="exportGPX()">GPX</button>
+<button onclick="stopGPS()">⛔ Parar</button>
+
+<button onclick="centerGPS()">📍 Centralizar</button>
+
+<div id="speed">0 km/h</div>
 
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
 <script src="app.js"></script>
 

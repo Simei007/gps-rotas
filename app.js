@@ -1,110 +1,146 @@
-let map = L.map('map').setView([-23.5505,-46.6333],13)
+let map = L.map("map").setView([-23.5505,-46.6333],18)
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(map)
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+{maxZoom:19}
+).addTo(map)
 
-let marker
-let watchId
-let trilha=[]
+let marker = L.marker([-23.5505,-46.6333]).addTo(map)
 
-let linha = L.polyline([],{
-color:"red",
-weight:5
-}).addTo(map)
-
-let carro = L.icon({
-
-iconUrl:"https://cdn-icons-png.flaticon.com/512/61/61168.png",
-iconSize:[40,40],
-iconAnchor:[20,20]
-
-})
+let routingControl=null
+let watchID=null
 
 function startGPS(){
 
-watchId = navigator.geolocation.watchPosition(pos=>{
+watchID=navigator.geolocation.watchPosition(pos=>{
 
-let lat = pos.coords.latitude
-let lon = pos.coords.longitude
-let heading = pos.coords.heading || 0
+let lat=pos.coords.latitude
+let lng=pos.coords.longitude
+let heading=pos.coords.heading
+let speed=pos.coords.speed
 
-let posicao=[lat,lon]
+marker.setLatLng([lat,lng])
 
-if(!marker){
+map.setView([lat,lng])
 
-marker=L.marker(posicao,{icon:carro}).addTo(map)
+/* velocidade */
 
-}else{
+if(speed){
 
-marker.setLatLng(posicao)
+let kmh=Math.round(speed*3.6)
+
+document.getElementById("speed").innerHTML=kmh+" km/h"
 
 }
 
-map.setView(posicao,18)
+/* rotação mapa */
 
-rotateMap(heading)
+if(heading!==null){
 
-registrarTrilha(lat,lon)
+map.getPane("mapPane").style.transform=
+`rotate(${-heading}deg)`
+
+}
+
+},{
+enableHighAccuracy:true
+})
+
+}
+
+function stopGPS(){
+
+if(watchID){
+
+navigator.geolocation.clearWatch(watchID)
+
+}
+
+}
+
+function centerGPS(){
+
+navigator.geolocation.getCurrentPosition(pos=>{
+
+map.setView([pos.coords.latitude,pos.coords.longitude],18)
 
 })
 
 }
 
-function rotateMap(heading){
+/* busca endereço */
 
-let pane = map.getPane('mapPane')
+async function searchPlace(){
 
-pane.style.transform = `rotate(${-heading}deg)`
+let query=document.getElementById("search").value
+
+if(!query) return
+
+let url=`https://nominatim.openstreetmap.org/search?format=json&q=${query}`
+
+let res=await fetch(url)
+
+let data=await res.json()
+
+if(data.length==0){
+
+alert("Endereço não encontrado")
+
+return
 
 }
 
-function registrarTrilha(lat,lon){
+let lat=data[0].lat
+let lon=data[0].lon
 
-trilha.push([lat,lon])
-
-linha.setLatLngs(trilha)
-
-}
-
-function startRecording(){
-
-trilha=[]
+createRoute(lat,lon)
 
 }
 
-function exportGPX(){
+/* criar rota */
 
-let gpx='<?xml version="1.0"?><gpx><trk><trkseg>'
+function createRoute(lat,lon){
 
-trilha.forEach(p=>{
+navigator.geolocation.getCurrentPosition(pos=>{
 
-gpx+=`<trkpt lat="${p[0]}" lon="${p[1]}"></trkpt>`
+let lat1=pos.coords.latitude
+let lon1=pos.coords.longitude
+
+if(routingControl){
+
+map.removeControl(routingControl)
+
+}
+
+routingControl=L.Routing.control({
+
+waypoints:[
+
+L.latLng(lat1,lon1),
+L.latLng(lat,lon)
+
+],
+
+routeWhileDragging:false
+
+}).addTo(map)
+
+/* voz */
+
+speak("Rota iniciada")
 
 })
 
-gpx+='</trkseg></trk></gpx>'
-
-let blob=new Blob([gpx])
-
-let a=document.createElement("a")
-
-a.href=URL.createObjectURL(blob)
-
-a.download="rota.gpx"
-
-a.click()
-
 }
 
-function setDestino(){
+/* voz */
 
-alert("Clique no mapa para escolher destino")
+function speak(text){
 
-map.once("click",e=>{
+let msg=new SpeechSynthesisUtterance(text)
 
-L.marker(e.latlng).addTo(map)
+msg.lang="pt-BR"
 
-})
+speechSynthesis.speak(msg)
 
 }
